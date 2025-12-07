@@ -5,15 +5,16 @@ import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 
 /**
- * 子系统管理器 v2.1.0 - 拾取、装填、双发射系统
+ * 子系统管理器 v2.2.0 - 拾取、装填、双发射系统
  * 
  * 新增功能：
  * - 双发射电机独立 PIDF 控制
  * - 多转速档位预设
  * - 转速精度自适应
- * - 状态机控制发射流程
+ * - 发射状态控制（扳机触发）
+ * - 获取各子系统状态字符串
  */
-public class SubsystemManager_2_1 {
+public class SubsystemManager_2_2 {
     
     private final DcMotor motorIntake;
     private final DcMotor motorLoad;
@@ -23,17 +24,18 @@ public class SubsystemManager_2_1 {
     // 转速和精度设置
     private int targetRPM = 0;
     private int currentErrorRange = 50;
+    private boolean isShooting = false;
     
-    // 状态机
-    private int fireState = RobotConstants_2_1.STATE_IDLE;
+    // 状态机 (仅用于显示)
+    private int fireState = RobotConstants_2_2.STATE_IDLE;
     
     // 编码器常数
-    private static final double MOTOR_TICK_COUNT = RobotConstants_2_1.SHOOTER_MOTOR_TICK_COUNT;
+    private static final double MOTOR_TICK_COUNT = RobotConstants_2_2.SHOOTER_MOTOR_TICK_COUNT;
     
     /**
      * 构造函数
      */
-    public SubsystemManager_2_1(DcMotor intake, DcMotor load, 
+    public SubsystemManager_2_2(DcMotor intake, DcMotor load, 
                                 DcMotorEx shooter1, DcMotorEx shooter2) {
         this.motorIntake = intake;
         this.motorLoad = load;
@@ -62,10 +64,10 @@ public class SubsystemManager_2_1 {
         motorShooter2.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
         
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(
-            RobotConstants_2_1.SHOOTER_PIDF_P,
-            RobotConstants_2_1.SHOOTER_PIDF_I,
-            RobotConstants_2_1.SHOOTER_PIDF_D,
-            RobotConstants_2_1.SHOOTER_PIDF_F
+            RobotConstants_2_2.SHOOTER_PIDF_P,
+            RobotConstants_2_2.SHOOTER_PIDF_I,
+            RobotConstants_2_2.SHOOTER_PIDF_D,
+            RobotConstants_2_2.SHOOTER_PIDF_F
         );
         
         motorShooter1.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
@@ -76,42 +78,42 @@ public class SubsystemManager_2_1 {
      * 启动拾取（正向）
      */
     public void intakeStart() {
-        motorIntake.setPower(RobotConstants_2_1.INTAKE_FORWARD_POWER);
+        motorIntake.setPower(RobotConstants_2_2.INTAKE_FORWARD_POWER);
     }
     
     /**
      * 反向拾取
      */
     public void intakeReverse() {
-        motorIntake.setPower(RobotConstants_2_1.INTAKE_REVERSE_POWER);
+        motorIntake.setPower(RobotConstants_2_2.INTAKE_REVERSE_POWER);
     }
     
     /**
      * 停止拾取
      */
     public void intakeStop() {
-        motorIntake.setPower(RobotConstants_2_1.INTAKE_STOP_POWER);
+        motorIntake.setPower(RobotConstants_2_2.INTAKE_STOP_POWER);
     }
     
     /**
      * 启动装填
      */
     public void loadStart() {
-        motorLoad.setPower(RobotConstants_2_1.LOAD_FORWARD_POWER);
+        motorLoad.setPower(RobotConstants_2_2.LOAD_FORWARD_POWER);
     }
     
     /**
      * 反向装填
      */
     public void loadReverse() {
-        motorLoad.setPower(RobotConstants_2_1.LOAD_REVERSE_POWER);
+        motorLoad.setPower(RobotConstants_2_2.LOAD_REVERSE_POWER);
     }
     
     /**
      * 停止装填
      */
     public void loadStop() {
-        motorLoad.setPower(RobotConstants_2_1.LOAD_STOP_POWER);
+        motorLoad.setPower(RobotConstants_2_2.LOAD_STOP_POWER);
     }
     
     /**
@@ -122,36 +124,67 @@ public class SubsystemManager_2_1 {
         this.targetRPM = rpm;
         
         // 根据转速档位自动调整精度范围
-        if (rpm == RobotConstants_2_1.SHOOTER_RPM_LONG_RANGE) {
-            this.currentErrorRange = RobotConstants_2_1.SHOOTER_RPM_ERROR_RANGE_LONG;
-        } else if (rpm == RobotConstants_2_1.SHOOTER_RPM_TRIANGLE_SIDE) {
-            this.currentErrorRange = RobotConstants_2_1.SHOOTER_RPM_ERROR_RANGE_SIDE;
-        } else if (rpm == RobotConstants_2_1.SHOOTER_RPM_TRIANGLE_BASE) {
-            this.currentErrorRange = RobotConstants_2_1.SHOOTER_RPM_ERROR_RANGE_BASE;
-        } else if (rpm == RobotConstants_2_1.SHOOTER_RPM_TRIANGLE_TOP) {
-            this.currentErrorRange = RobotConstants_2_1.SHOOTER_RPM_ERROR_RANGE_TOP;
+        if (rpm == RobotConstants_2_2.SHOOTER_RPM_LONG_RANGE) {
+            this.currentErrorRange = RobotConstants_2_2.SHOOTER_RPM_ERROR_RANGE_LONG;
+        } else if (rpm == RobotConstants_2_2.SHOOTER_RPM_TRIANGLE_SIDE) {
+            this.currentErrorRange = RobotConstants_2_2.SHOOTER_RPM_ERROR_RANGE_SIDE;
+        } else if (rpm == RobotConstants_2_2.SHOOTER_RPM_TRIANGLE_BASE) {
+            this.currentErrorRange = RobotConstants_2_2.SHOOTER_RPM_ERROR_RANGE_BASE;
+        } else if (rpm == RobotConstants_2_2.SHOOTER_RPM_TRIANGLE_TOP) {
+            this.currentErrorRange = RobotConstants_2_2.SHOOTER_RPM_ERROR_RANGE_TOP;
         }
         
-        // 更新电机目标速度
-        updateShooterSpeed();
+        // 如果正在发射中，更新转速
+        if (isShooting) {
+            updateShooterSpeed();
+        }
     }
     
+    /**
+     * 设置发射状态（启/停）
+     */
+    public void setShootingState(boolean firing) {
+        if (isShooting != firing) {
+            isShooting = firing;
+            updateShooterSpeed();
+            
+            // 更新显示用的状态
+            fireState = firing ? RobotConstants_2_2.STATE_FIRING : RobotConstants_2_2.STATE_IDLE;
+        }
+    }
+
     /**
      * 更新发射电机速度
      */
     private void updateShooterSpeed() {
-        double targetTicksPerSecond = targetRPM * MOTOR_TICK_COUNT / 60.0;
-        motorShooter1.setVelocity(targetTicksPerSecond);
-        motorShooter2.setVelocity(targetTicksPerSecond);
+        double ticks = 0;
+        if (isShooting) {
+            ticks = targetRPM * MOTOR_TICK_COUNT / 60.0;
+        }
+        motorShooter1.setVelocity(ticks);
+        motorShooter2.setVelocity(ticks);
     }
     
     /**
-     * 获取当前发射转速（从第二个发射电机读取）
+     * 获取当前发射转速（从第二个发射电机读取）- 兼容旧接口
      * @return 当前转速（RPM）
      */
     public double getCurrentShooterRPM() {
-        double currentVelocityTicks = motorShooter2.getVelocity();
-        return (currentVelocityTicks / MOTOR_TICK_COUNT) * 60.0;
+        return getCurrentShooter2RPM();
+    }
+    
+    /**
+     * 获取S1电机转速
+     */
+    public double getCurrentShooter1RPM() {
+        return (motorShooter1.getVelocity() / MOTOR_TICK_COUNT) * 60.0;
+    }
+
+    /**
+     * 获取S2电机转速
+     */
+    public double getCurrentShooter2RPM() {
+        return (motorShooter2.getVelocity() / MOTOR_TICK_COUNT) * 60.0;
     }
     
     /**
@@ -159,7 +192,8 @@ public class SubsystemManager_2_1 {
      * @return true 如果达到目标转速，false 否则
      */
     public boolean isShooterAtTargetSpeed() {
-        double currentRPM = getCurrentShooterRPM();
+        if (!isShooting || targetRPM == 0) return false;
+        double currentRPM = getCurrentShooter2RPM();
         double targetMin = targetRPM - currentErrorRange;
         double targetMax = targetRPM + currentErrorRange;
         return currentRPM >= targetMin && currentRPM <= targetMax;
@@ -169,7 +203,7 @@ public class SubsystemManager_2_1 {
      * 停止发射电机
      */
     public void stopShooter() {
-        targetRPM = 0;
+        isShooting = false;
         updateShooterSpeed();
     }
     
@@ -182,37 +216,24 @@ public class SubsystemManager_2_1 {
         stopShooter();
     }
     
-    // ========== 状态机控制 ==========
-    
     /**
-     * 更新发射状态机
-     * 
-     * A键：启动拾取
-     * B键：反向拾取和装填
-     * X键：停止所有
-     * Y键（边缘触发）：根据转速准备情况自动控制发射流程
+     * 获取拾取状态字符串
      */
-    public void updateFireState(boolean yPressed, boolean lastYState) {
-        // Y 键边缘检测
-        if (yPressed && !lastYState) {
-            if (fireState == RobotConstants_2_1.STATE_IDLE && isShooterAtTargetSpeed()) {
-                // 从待机 -> 发射状态
-                fireState = RobotConstants_2_1.STATE_FIRING;
-                intakeStart();
-                loadStart();
-            } else if (fireState == RobotConstants_2_1.STATE_FIRING) {
-                // 从发射状态 -> 待机
-                fireState = RobotConstants_2_1.STATE_IDLE;
-                intakeStop();
-                loadStop();
-            }
-        }
-        
-        // 如果转速不足，停止发射
-        if (fireState == RobotConstants_2_1.STATE_FIRING && !isShooterAtTargetSpeed()) {
-            intakeStop();
-            loadStop();
-        }
+    public String getIntakeStatus() {
+        double p = motorIntake.getPower();
+        if (p > 0) return "吸入";
+        if (p < 0) return "吐出";
+        return "停止";
+    }
+
+    /**
+     * 获取装填状态字符串
+     */
+    public String getLoadStatus() {
+        double p = motorLoad.getPower();
+        if (p > 0) return "装填";
+        if (p < 0) return "退回";
+        return "停止";
     }
     
     /**

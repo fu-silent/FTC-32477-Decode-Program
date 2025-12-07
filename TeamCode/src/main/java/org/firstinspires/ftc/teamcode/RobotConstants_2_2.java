@@ -1,14 +1,14 @@
 package org.firstinspires.ftc.teamcode;
 
 /**
- * FTC32477 TeleOp v2.1.0 - 常数和配置管理
+ * FTC32477 TeleOp v2.2.0 - 常数和配置管理
  * 
- * 新增功能：
- * - IMU 自动转向控制
- * - 双发射电机独立控制
- * - 多转速档位预设
+ * 基于 v2.1 升级，新增功能：
+ * - 底盘非线性模式（Squared）
+ * - 手柄震动反馈
+ * - 发射逻辑优化（D-Pad 预设 + 扳机启动）
  */
-public class RobotConstants_2_1 {
+public class RobotConstants_2_2 {
     
     // ========== 硬件名称配置 ==========
     
@@ -47,27 +47,27 @@ public class RobotConstants_2_1 {
     public static final double SHOOTER_PIDF_F = 14;
     
     // 转速档位预设（RPM）
-    public static final int SHOOTER_RPM_LONG_RANGE = 1800;      // 超远距离（D-Pad 右）
-    public static final int SHOOTER_RPM_TRIANGLE_SIDE = 1400;   // 三角形腰部（D-Pad 左）
-    public static final int SHOOTER_RPM_TRIANGLE_BASE = 1200;   // 三角形底部（D-Pad 下）
-    public static final int SHOOTER_RPM_TRIANGLE_TOP = 1650;    // 三角形顶点（D-Pad 上）
+    public static final int SHOOTER_RPM_LONG_RANGE = 3200;      // 超远距离（D-Pad 右）
+    public static final int SHOOTER_RPM_TRIANGLE_SIDE = 1900;   // 三角形腰部（D-Pad 左）
+    public static final int SHOOTER_RPM_TRIANGLE_BASE = 1650;   // 三角形底部（D-Pad 下）
+    public static final int SHOOTER_RPM_TRIANGLE_TOP = 2400;    // 三角形顶点（D-Pad 上）
     
     // 转速精度范围（RPM）
-    public static final int SHOOTER_RPM_ERROR_RANGE_LONG = 200;     // 超远精度范围
-    public static final int SHOOTER_RPM_ERROR_RANGE_SIDE = 200;     // 腰部精度范围
-    public static final int SHOOTER_RPM_ERROR_RANGE_BASE = 200;     // 底部精度范围
-    public static final int SHOOTER_RPM_ERROR_RANGE_TOP = 200;      // 顶点精度范围
+    public static final int SHOOTER_RPM_ERROR_RANGE_LONG = 100;     // 超远精度范围
+    public static final int SHOOTER_RPM_ERROR_RANGE_SIDE = 100;     // 腰部精度范围
+    public static final int SHOOTER_RPM_ERROR_RANGE_BASE = 100;     // 底部精度范围
+    public static final int SHOOTER_RPM_ERROR_RANGE_TOP = 100;      // 顶点精度范围
     
     // ========== 拾取和装填系统参数 ==========
     
     // 拾取电机功率
-    public static final double INTAKE_FORWARD_POWER = 0.8;
-    public static final double INTAKE_REVERSE_POWER = -0.8;
+    public static final double INTAKE_FORWARD_POWER = 0.9;
+    public static final double INTAKE_REVERSE_POWER = -0.9;
     public static final double INTAKE_STOP_POWER = 0.0;
     
     // 装填电机功率
-    public static final double LOAD_FORWARD_POWER = 0.55;
-    public static final double LOAD_REVERSE_POWER = -0.55;
+    public static final double LOAD_FORWARD_POWER = 0.75;
+    public static final double LOAD_REVERSE_POWER = -0.75;
     public static final double LOAD_STOP_POWER = 0.0;
     
     // ========== IMU 自动转向参数 ==========
@@ -87,7 +87,10 @@ public class RobotConstants_2_1 {
     public static final double AUTO_TURN_TARGET_RIGHT = 45.0;   // 右转 45 度（右肩键）
     public static final double AUTO_TURN_TARGET_LEFT = -45.0;   // 左转 45 度
     
-    // ========== 状态机参数 ==========
+    // ========== 杂项参数 ==========
+    public static final int RUMBLE_DURATION_MS = 200; // 手柄震动时长
+    
+    // ========== 状态机参数 (已废弃，保留兼容) ==========
     
     // 发射状态控制
     public static final int STATE_IDLE = 0;              // 待机

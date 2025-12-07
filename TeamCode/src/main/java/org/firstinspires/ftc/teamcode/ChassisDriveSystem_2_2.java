@@ -3,15 +3,16 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 /**
- * 底盘驱动系统 v2.1.0 - Mecanum 轮驱动和运动控制
+ * 底盘驱动系统 v2.2.0 - Mecanum 轮驱动和运动控制
  * 
  * 功能：
  * - 前后、左右、旋转独立控制
  * - 自动转向时禁用手动转向
  * - 死区和非线性映射
  * - 功率归一化
+ * - 线性/非线性模式切换
  */
-public class ChassisDriveSystem_2_1 {
+public class ChassisDriveSystem_2_2 {
     
     private final DcMotor motorChassisFL;  // 前左
     private final DcMotor motorChassisFR;  // 前右
@@ -19,12 +20,15 @@ public class ChassisDriveSystem_2_1 {
     private final DcMotor motorChassisBR;  // 后右
     
     // 控制参数
-    private final double DEADZONE = RobotConstants_2_1.CHASSIS_JOYSTICK_DEADZONE;
+    private final double DEADZONE = RobotConstants_2_2.CHASSIS_JOYSTICK_DEADZONE;
+    
+    // 驱动模式状态
+    private boolean isNonLinearMode = false; // 默认为线性模式
     
     /**
      * 构造函数
      */
-    public ChassisDriveSystem_2_1(DcMotor fl, DcMotor fr, DcMotor bl, DcMotor br) {
+    public ChassisDriveSystem_2_2(DcMotor fl, DcMotor fr, DcMotor bl, DcMotor br) {
         this.motorChassisFL = fl;
         this.motorChassisFR = fr;
         this.motorChassisBL = bl;
@@ -49,6 +53,20 @@ public class ChassisDriveSystem_2_1 {
     }
     
     /**
+     * 切换驱动模式（线性 <-> 非线性）
+     */
+    public void toggleDriveMode() {
+        isNonLinearMode = !isNonLinearMode;
+    }
+    
+    /**
+     * 获取当前驱动模式名称
+     */
+    public String getDriveModeName() {
+        return isNonLinearMode ? "非线性 (Squared)" : "线性 (Linear)";
+    }
+    
+    /**
      * 更新底盘运动
      * 
      * @param drive 前后运动（-1 到 1，正向前进）
@@ -69,14 +87,20 @@ public class ChassisDriveSystem_2_1 {
             turn = autoTurnPower;
         } else {
             turn = applyDeadzone(turn);
-            turn = applyNonlinearMapping(turn);
+            
+            // 非线性模式处理（平方映射）
+            if (isNonLinearMode) {
+                drive = Math.copySign(drive * drive, drive);
+                strafe = Math.copySign(strafe * strafe, strafe);
+                turn = Math.copySign(turn * turn, turn);
+            }
         }
         
         // 计算各轮功率（Mecanum 轮运动学）
         double flPower = drive + strafe + turn;
         double frPower = drive - strafe - turn;
         double blPower = drive + strafe - turn;
-        double brPower = drive - strafe + turn;
+        double brPower = drive + strafe - turn;
         
         // 功率归一化
         normalizeAndApplyPower(flPower, frPower, blPower, brPower);
@@ -92,16 +116,6 @@ public class ChassisDriveSystem_2_1 {
             return 0;
         }
         return input;
-    }
-    
-    /**
-     * 应用非线性映射（平方映射，增加精细控制）
-     * @param input 输入值（-1 到 1）
-     * @return 映射后的值
-     */
-    private double applyNonlinearMapping(double input) {
-        // 保留符号，对绝对值进行平方
-        return Math.copySign(input * input, input);
     }
     
     /**

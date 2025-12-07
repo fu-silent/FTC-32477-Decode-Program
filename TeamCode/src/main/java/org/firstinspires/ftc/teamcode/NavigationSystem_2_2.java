@@ -7,7 +7,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /**
- * 导航系统 v2.1.0 - IMU 和自动转向控制
+ * 导航系统 v2.2.0 - IMU 和自动转向控制
  * 
  * 功能：
  * - 初始化 IMU 传感器
@@ -15,7 +15,7 @@ import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
  * - 自动转向到目标角度（PID控制）
  * - 重置 IMU 偏航角
  */
-public class NavigationSystem_2_1 {
+public class NavigationSystem_2_2 {
     
     private final IMU imu;
     private final String imuName;
@@ -30,17 +30,17 @@ public class NavigationSystem_2_1 {
     private long previousTime = 0;
     
     // 配置参数（从常数获取）
-    private final double HEADING_THRESHOLD = RobotConstants_2_1.AUTO_TURN_HEADING_THRESHOLD;
-    private final double TURN_POWER = RobotConstants_2_1.AUTO_TURN_POWER;
-    private final double P_GAIN = RobotConstants_2_1.AUTO_TURN_P_GAIN;
-    private final double I_GAIN = RobotConstants_2_1.AUTO_TURN_I_GAIN;
-    private final double D_GAIN = RobotConstants_2_1.AUTO_TURN_D_GAIN;
+    private final double HEADING_THRESHOLD = RobotConstants_2_2.AUTO_TURN_HEADING_THRESHOLD;
+    private final double TURN_POWER = RobotConstants_2_2.AUTO_TURN_POWER;
+    private final double P_GAIN = RobotConstants_2_2.AUTO_TURN_P_GAIN;
+    private final double I_GAIN = RobotConstants_2_2.AUTO_TURN_I_GAIN;
+    private final double D_GAIN = RobotConstants_2_2.AUTO_TURN_D_GAIN;
     
     /**
      * 构造函数
      * @param imu IMU 硬件对象
      */
-    public NavigationSystem(IMU imu, String imuName) {
+    public NavigationSystem_2_2(IMU imu, String imuName) {
         this.imu = imu;
         this.imuName = imuName;
     }

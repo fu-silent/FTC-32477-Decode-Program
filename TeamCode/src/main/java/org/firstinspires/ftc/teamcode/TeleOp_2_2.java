@@ -8,25 +8,23 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.robotcore.util.ElapsedTime;
 
 /**
- * TeleOp v2.1.0 - 主程序（多文件模块化版本）
+ * TeleOp v2.2.0 - 主程序（多文件模块化版本）
  * 
- * 基于 v1.0 扩展，新增功能：
- * - IMU 自动转向控制（PID）
- * - 双发射电机独立驱动
- * - 多转速档位预设（4个）
- * - 转速精度自适应
- * - 状态机控制发射流程
+ * 基于 v2.1 升级，新增功能：
+ * - 底盘非线性模式（Squared）
+ * - 手柄震动反馈
+ * - 发射逻辑优化（D-Pad 预设 + 扳机启动）
  * 
  * 模块组织：
- * - RobotConstants_2_1: 常数管理
- * - ChassisDriveSystem_2_1: 底盘驱动
- * - NavigationSystem_2_1: IMU 导航
- * - SubsystemManager_2_1: 子系统控制
- * - ControlInputManager_2_1: 输入处理
- * - TelemetryManager_2_1: 遥测显示
+ * - RobotConstants_2_2: 常数管理
+ * - ChassisDriveSystem_2_2: 底盘驱动
+ * - NavigationSystem_2_2: IMU 导航
+ * - SubsystemManager_2_2: 子系统控制
+ * - ControlInputManager_2_2: 输入处理
+ * - TelemetryManager_2_2: 遥测显示
  */
-@TeleOp(name = "TeleOp_2_1", group = "TeleOp")
-public class TeleOp_2_1 extends LinearOpMode {
+@TeleOp(name = "TeleOp_2_2", group = "TeleOp")
+public class TeleOp_2_2 extends LinearOpMode {
     
     // ========== 硬件对象 ==========
     private DcMotor motorsChassisFL;
@@ -40,15 +38,14 @@ public class TeleOp_2_1 extends LinearOpMode {
     private IMU imu;
     
     // ========== 模块对象 ==========
-    private ChassisDriveSystem_2_1 chassis;
-    private NavigationSystem_2_1 navigation;
-    private SubsystemManager_2_1 subsystems;
-    private ControlInputManager_2_1 controlInput;
-    private TelemetryManager_2_1 telemetryMgr;
+    private ChassisDriveSystem_2_2 chassis;
+    private NavigationSystem_2_2 navigation;
+    private SubsystemManager_2_2 subsystems;
+    private ControlInputManager_2_2 controlInput;
+    private TelemetryManager_2_2 telemetryMgr;
     
     // ========== 运行时数据 ==========
     private ElapsedTime runtime;
-    private boolean lastYState = false;
     
     @Override
     public void runOpMode() {
@@ -90,17 +87,17 @@ public class TeleOp_2_1 extends LinearOpMode {
     private void initializeAllSystems() {
         // 初始化硬件
         try {
-            motorsChassisFL = hardwareMap.get(DcMotor.class, RobotConstants_2_1.CHASSIS_MOTOR_FRONT_LEFT_NAME);
-            motorsChassisFR = hardwareMap.get(DcMotor.class, RobotConstants_2_1.CHASSIS_MOTOR_FRONT_RIGHT_NAME);
-            motorsChassiBL = hardwareMap.get(DcMotor.class, RobotConstants_2_1.CHASSIS_MOTOR_BACK_LEFT_NAME);
-            motorsChassiBR = hardwareMap.get(DcMotor.class, RobotConstants_2_1.CHASSIS_MOTOR_BACK_RIGHT_NAME);
+            motorsChassisFL = hardwareMap.get(DcMotor.class, RobotConstants_2_2.CHASSIS_MOTOR_FRONT_LEFT_NAME);
+            motorsChassisFR = hardwareMap.get(DcMotor.class, RobotConstants_2_2.CHASSIS_MOTOR_FRONT_RIGHT_NAME);
+            motorsChassiBL = hardwareMap.get(DcMotor.class, RobotConstants_2_2.CHASSIS_MOTOR_BACK_LEFT_NAME);
+            motorsChassiBR = hardwareMap.get(DcMotor.class, RobotConstants_2_2.CHASSIS_MOTOR_BACK_RIGHT_NAME);
             
-            motorIntake = hardwareMap.get(DcMotor.class, RobotConstants_2_1.SUBSYSTEM_INTAKE_MOTOR_NAME);
-            motorLoad = hardwareMap.get(DcMotor.class, RobotConstants_2_1.SUBSYSTEM_LOAD_MOTOR_NAME);
-            motorShooter1 = hardwareMap.get(DcMotorEx.class, RobotConstants_2_1.SUBSYSTEM_SHOOTER1_MOTOR_NAME);
-            motorShooter2 = hardwareMap.get(DcMotorEx.class, RobotConstants_2_1.SUBSYSTEM_SHOOTER2_MOTOR_NAME);
+            motorIntake = hardwareMap.get(DcMotor.class, RobotConstants_2_2.SUBSYSTEM_INTAKE_MOTOR_NAME);
+            motorLoad = hardwareMap.get(DcMotor.class, RobotConstants_2_2.SUBSYSTEM_LOAD_MOTOR_NAME);
+            motorShooter1 = hardwareMap.get(DcMotorEx.class, RobotConstants_2_2.SUBSYSTEM_SHOOTER1_MOTOR_NAME);
+            motorShooter2 = hardwareMap.get(DcMotorEx.class, RobotConstants_2_2.SUBSYSTEM_SHOOTER2_MOTOR_NAME);
             
-            imu = hardwareMap.get(IMU.class, RobotConstants_2_1.IMU_SENSOR_NAME);
+            imu = hardwareMap.get(IMU.class, RobotConstants_2_2.IMU_SENSOR_NAME);
         } catch (IllegalArgumentException e) {
             telemetry.addData("初始化错误", "硬件配置不匹配: " + e.getMessage());
             telemetry.update();
@@ -108,11 +105,11 @@ public class TeleOp_2_1 extends LinearOpMode {
         }
         
         // 初始化模块
-        chassis = new ChassisDriveSystem_2_1(motorsChassisFL, motorsChassisFR, motorsChassiBL, motorsChassiBR);
-        navigation = new NavigationSystem_2_1(imu, RobotConstants_2_1.IMU_SENSOR_NAME);
-        subsystems = new SubsystemManager_2_1(motorIntake, motorLoad, motorShooter1, motorShooter2);
-        controlInput = new ControlInputManager_2_1(gamepad1);
-        telemetryMgr = new TelemetryManager_2_1(telemetry);
+        chassis = new ChassisDriveSystem_2_2(motorsChassisFL, motorsChassisFR, motorsChassiBL, motorsChassiBR);
+        navigation = new NavigationSystem_2_2(imu, RobotConstants_2_2.IMU_SENSOR_NAME);
+        subsystems = new SubsystemManager_2_2(motorIntake, motorLoad, motorShooter1, motorShooter2);
+        controlInput = new ControlInputManager_2_2(gamepad1);
+        telemetryMgr = new TelemetryManager_2_2(telemetry);
         
         // 初始化各系统
         chassis.initialize();
@@ -129,7 +126,12 @@ public class TeleOp_2_1 extends LinearOpMode {
     private void updateControlInputs() {
         // 检查自动转向请求
         if (controlInput.isRightBumperPressed()) {
-            navigation.startAutoTurn(RobotConstants_2_1.AUTO_TURN_TARGET_RIGHT);
+            navigation.startAutoTurn(RobotConstants_2_2.AUTO_TURN_TARGET_RIGHT);
+        }
+        
+        // 检查底盘模式切换
+        if (controlInput.isYButtonPressed()) {
+            chassis.toggleDriveMode();
         }
     }
     
@@ -170,18 +172,28 @@ public class TeleOp_2_1 extends LinearOpMode {
             subsystems.loadStop();
         }
         
-        // 发射转速档位选择（D-Pad）
+        // 发射转速档位选择（D-Pad） - 只设置目标转速并震动，不启动
+        boolean rpmChanged = false;
         if (controlInput.isShooterSpeedLongRangeRequested()) {
-            subsystems.setShooterTargetRPM(RobotConstants_2_1.SHOOTER_RPM_LONG_RANGE);
+            subsystems.setShooterTargetRPM(RobotConstants_2_2.SHOOTER_RPM_LONG_RANGE);
+            rpmChanged = true;
         } else if (controlInput.isShooterSpeedSideRequested()) {
-            subsystems.setShooterTargetRPM(RobotConstants_2_1.SHOOTER_RPM_TRIANGLE_SIDE);
+            subsystems.setShooterTargetRPM(RobotConstants_2_2.SHOOTER_RPM_TRIANGLE_SIDE);
+            rpmChanged = true;
         } else if (controlInput.isShooterSpeedBaseRequested()) {
-            subsystems.setShooterTargetRPM(RobotConstants_2_1.SHOOTER_RPM_TRIANGLE_BASE);
+            subsystems.setShooterTargetRPM(RobotConstants_2_2.SHOOTER_RPM_TRIANGLE_BASE);
+            rpmChanged = true;
         } else if (controlInput.isShooterSpeedTopRequested()) {
-            subsystems.setShooterTargetRPM(RobotConstants_2_1.SHOOTER_RPM_TRIANGLE_TOP);
+            subsystems.setShooterTargetRPM(RobotConstants_2_2.SHOOTER_RPM_TRIANGLE_TOP);
+            rpmChanged = true;
         }
         
-        // 发射系统由右扳机直接控制转速（发射处于准备状态，不由Y键控制）
+        if (rpmChanged) {
+            controlInput.rumble();
+        }
+        
+        // 发射系统由右扳机直接控制启停
+        subsystems.setShootingState(controlInput.isShooterRequested());
     }
     
     /**
@@ -191,13 +203,15 @@ public class TeleOp_2_1 extends LinearOpMode {
         telemetryMgr.clear();
         
         telemetryMgr.displayFullTelemetry(
-            runtime.toString(),
+            String.format("%.1f s", runtime.seconds()),
             subsystems.getTargetRPM(),
-            subsystems.getCurrentShooterRPM(),
+            subsystems.getCurrentShooter1RPM(),
+            subsystems.getCurrentShooter2RPM(),
             subsystems.isShooterAtTargetSpeed(),
-            subsystems.getFireState(),
+            chassis.getDriveModeName(),
+            subsystems.getIntakeStatus(),
+            subsystems.getLoadStatus(),
             navigation.getCurrentHeading(),
-            navigation.getCurrentHeading(),  // 目标航向暂时与当前相同
             navigation.isAutoTurning()
         );
         

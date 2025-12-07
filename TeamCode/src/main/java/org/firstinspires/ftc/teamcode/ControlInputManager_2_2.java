@@ -3,23 +3,25 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.Gamepad;
 
 /**
- * 输入管理器 v2.1.0 - 手柄输入处理
+ * 输入管理器 v2.2.0 - 手柄输入处理
  * 
  * 功能：
  * - 摇杆输入处理
  * - 按键边缘检测
  * - D-Pad 转速档位控制
  * - 肩键自动转向控制
+ * - 手柄震动反馈
  */
-public class ControlInputManager_2_1 {
+public class ControlInputManager_2_2 {
     
     private final Gamepad gamepad;
     
     // 边缘检测用的状态
     private boolean lastYState = false;
     private boolean lastRightBumperState = false;
+    private boolean lastUp = false, lastDown = false, lastLeft = false, lastRight = false;
     
-    public ControlInputManager_2_1(Gamepad gamepad) {
+    public ControlInputManager_2_2(Gamepad gamepad) {
         this.gamepad = gamepad;
     }
     
@@ -94,31 +96,50 @@ public class ControlInputManager_2_1 {
     }
     
     /**
-     * 检查是否按下 D-Pad 右（超远距离转速）
+     * 检查是否按下 D-Pad 右（超远距离转速）- 边缘触发
      */
     public boolean isShooterSpeedLongRangeRequested() {
-        return gamepad.dpad_right;
+        boolean current = gamepad.dpad_right;
+        boolean result = current && !lastRight;
+        lastRight = current;
+        return result;
     }
     
     /**
-     * 检查是否按下 D-Pad 左（三角腰转速）
+     * 检查是否按下 D-Pad 左（三角腰转速）- 边缘触发
      */
     public boolean isShooterSpeedSideRequested() {
-        return gamepad.dpad_left;
+        boolean current = gamepad.dpad_left;
+        boolean result = current && !lastLeft;
+        lastLeft = current;
+        return result;
     }
     
     /**
-     * 检查是否按下 D-Pad 下（三角底转速）
+     * 检查是否按下 D-Pad 下（三角底转速）- 边缘触发
      */
     public boolean isShooterSpeedBaseRequested() {
-        return gamepad.dpad_down;
+        boolean current = gamepad.dpad_down;
+        boolean result = current && !lastDown;
+        lastDown = current;
+        return result;
     }
     
     /**
-     * 检查是否按下 D-Pad 上（三角顶转速）
+     * 检查是否按下 D-Pad 上（三角顶转速）- 边缘触发
      */
     public boolean isShooterSpeedTopRequested() {
-        return gamepad.dpad_up;
+        boolean current = gamepad.dpad_up;
+        boolean result = current && !lastUp;
+        lastUp = current;
+        return result;
+    }
+    
+    /**
+     * 触发手柄震动
+     */
+    public void rumble() {
+        gamepad.rumble(RobotConstants_2_2.RUMBLE_DURATION_MS);
     }
     
     /**
