@@ -1,131 +1,208 @@
-## TeamCode Module
+# 📦 TeleOp_All v2.1 - FTC32477 控制程序（优化版）
 
-Welcome!
+> **本程序用于 FTC Decode 赛季（2025-2026）**  
+> **修改前请阅读项目根目录的 `修改指南.md`**
 
-This module, TeamCode, is the place where you will write/paste the code for your team's
-robot controller App. This module is currently empty (a clean slate) but the
-process for adding OpModes is straightforward.
+## ⚡ 30秒快速开始
 
-## Creating your own OpModes
+### 推荐方案：使用单文件版本
 
-The easiest way to create your own OpMode is to copy a Sample OpMode and make it your own.
-
-Sample opmodes exist in the FtcRobotController module.
-To locate these samples, find the FtcRobotController module in the "Project/Android" tab.
-
-Expand the following tree elements:
- FtcRobotController/java/org.firstinspires.ftc.robotcontroller/external/samples
-
-### Naming of Samples
-
-To gain a better understanding of how the samples are organized, and how to interpret the
-naming system, it will help to understand the conventions that were used during their creation.
-
-These conventions are described (in detail) in the sample_conventions.md file in this folder.
-
-To summarize: A range of different samples classes will reside in the java/external/samples.
-The class names will follow a naming convention which indicates the purpose of each class.
-The prefix of the name will be one of the following:
-
-Basic:  	This is a minimally functional OpMode used to illustrate the skeleton/structure
-            of a particular style of OpMode.  These are bare bones examples.
-
-Sensor:    	This is a Sample OpMode that shows how to use a specific sensor.
-            It is not intended to drive a functioning robot, it is simply showing the minimal code
-            required to read and display the sensor values.
-
-Robot:	    This is a Sample OpMode that assumes a simple two-motor (differential) drive base.
-            It may be used to provide a common baseline driving OpMode, or
-            to demonstrate how a particular sensor or concept can be used to navigate.
-
-Concept:	This is a sample OpMode that illustrates performing a specific function or concept.
-            These may be complex, but their operation should be explained clearly in the comments,
-            or the comments should reference an external doc, guide or tutorial.
-            Each OpMode should try to only demonstrate a single concept so they are easy to
-            locate based on their name.  These OpModes may not produce a drivable robot.
-
-After the prefix, other conventions will apply:
-
-* Sensor class names are constructed as:    Sensor - Company - Type
-* Robot class names are constructed as:     Robot - Mode - Action - OpModetype
-* Concept class names are constructed as:   Concept - Topic - OpModetype
-
-Once you are familiar with the range of samples available, you can choose one to be the
-basis for your own robot.  In all cases, the desired sample(s) needs to be copied into
-your TeamCode module to be used.
-
-This is done inside Android Studio directly, using the following steps:
-
- 1) Locate the desired sample class in the Project/Android tree.
-
- 2) Right click on the sample class and select "Copy"
-
- 3) Expand the  TeamCode/java folder
-
- 4) Right click on the org.firstinspires.ftc.teamcode folder and select "Paste"
-
- 5) You will be prompted for a class name for the copy.
-    Choose something meaningful based on the purpose of this class.
-    Start with a capital letter, and remember that there may be more similar classes later.
-
-Once your copy has been created, you should prepare it for use on your robot.
-This is done by adjusting the OpMode's name, and enabling it to be displayed on the
-Driver Station's OpMode list.
-
-Each OpMode sample class begins with several lines of code like the ones shown below:
-
-```
- @TeleOp(name="Template: Linear OpMode", group="Linear Opmode")
- @Disabled
+```bash
+1. 打开 TeleOp_All_2_1.java
+2. 修改硬件名称（见下表）
+3. 编译并上传到 FTC 控制器
+4. 完成！✅
 ```
 
-The name that will appear on the driver station's "opmode list" is defined by the code:
- ``name="Template: Linear OpMode"``
-You can change what appears between the quotes to better describe your opmode.
-The "group=" portion of the code can be used to help organize your list of OpModes.
+## 🎯 v2.1 特点
 
-As shown, the current OpMode will NOT appear on the driver station's OpMode list because of the
-  ``@Disabled`` annotation which has been included.
-This line can simply be deleted , or commented out, to make the OpMode visible.
+### 相比 v2.0 的改进
 
+| 特性 | v2.0 | v2.1 | 说明 |
+|------|------|------|------|
+| 双发射电机 | ✅ | ✅ | 保留 |
+| IMU 自动转向 | ✅ | ✅ | 保留 |
+| **转速预设** | 3个 | **4个** | **新增超远1800RPM** |
+| **转速精度** | 可变 | **统一±200** | **简化精度配置** |
+| **按键映射** | 混合 | **v1.0风格** | **回归经典按键** |
+| **模块联动** | 是 | **无** | **完全独立控制** |
+| **易用性** | 中等 | **更佳** | **更直观的控制** |
 
+## 📂 文件说明
 
-## ADVANCED Multi-Team App management:  Cloning the TeamCode Module
+### 核心程序
 
-In some situations, you have multiple teams in your club and you want them to all share
-a common code organization, with each being able to *see* the others code but each having
-their own team module with their own code that they maintain themselves.
+| 文件 | 用途 | 推荐 |
+|------|------|------|
+| `TeleOp_All_2_1.java` | 单文件版，所有功能集成 | ⭐ 竞赛 |
+| `TeleOp_2_1.java` + 7模块 | 多文件版，清晰易扩展 | 📚 学习 |
 
-In this situation, you might wish to clone the TeamCode module, once for each of these teams.
-Each of the clones would then appear along side each other in the Android Studio module list,
-together with the FtcRobotController module (and the original TeamCode module).
+### 文档导航
 
-Selective Team phones can then be programmed by selecting the desired Module from the pulldown list
-prior to clicking to the green Run arrow.
+- **README.md** - 快速开始（本文件，5分钟）
+- **综合使用指南.md** - 配置和常见问题（15分钟）
+- **功能对比文档.md** - v2.0→v2.1 改进对比（10分钟）
 
-Warning:  This is not for the inexperienced Software developer.
-You will need to be comfortable with File manipulations and managing Android Studio Modules.
-These changes are performed OUTSIDE of Android Studios, so close Android Studios before you do this.
- 
-Also.. Make a full project backup before you start this :)
+## 🎮 新增功能
 
-To clone TeamCode, do the following:
+- **独立控制** - 拾取、装填、发射三个系统完全分离
+- **统一精度** - 所有转速档位精度统一 ±200 RPM
+- **v1.0 按键** - 恢复熟悉的按键映射（A/B/LT/LB/RT）
+- **双发射电机** - 两个电机独立同步驱动
+- **IMU 导航** - 陀螺仪自动转向
+- **4 转速档位** - 超远/腰部/底部/顶点
 
-Note: Some names start with "Team" and others start with "team".  This is intentional.
+## ⚙️ 基本配置
 
-1)  Using your operating system file management tools, copy the whole "TeamCode"
-    folder to a sibling folder with a corresponding new name, eg: "Team0417".
+### 修改硬件名称
 
-2)  In the new Team0417 folder, delete the TeamCode.iml file.
+在 `Constants` 类或 `RobotConstants_2_0.java` 中：
 
-3)  the new Team0417 folder, rename the "src/main/java/org/firstinspires/ftc/teamcode" folder
-    to a matching name with a lowercase 'team' eg:  "team0417".
+```java
+// 底盘
+CHASSIS_MOTOR_FRONT_LEFT_NAME = "lf";      // 改成你的名称
+CHASSIS_MOTOR_FRONT_RIGHT_NAME = "rf";
+CHASSIS_MOTOR_BACK_LEFT_NAME = "lb";
+CHASSIS_MOTOR_BACK_RIGHT_NAME = "rb";
 
-4)  In the new Team0417/src/main folder, edit the "AndroidManifest.xml" file, change the line that contains
-         package="org.firstinspires.ftc.teamcode"
-    to be
-         package="org.firstinspires.ftc.team0417"
+// 子系统
+SUBSYSTEM_INTAKE_MOTOR_NAME = "intake";
+SUBSYSTEM_LOAD_MOTOR_NAME = "load";
+SUBSYSTEM_SHOOTER1_MOTOR_NAME = "s1";      // 新增：第一个发射电机
+SUBSYSTEM_SHOOTER2_MOTOR_NAME = "s2";      // 新增：第二个发射电机
+IMU_SENSOR_NAME = "imu";                   // 新增：IMU 传感器
+```
 
-5)  Add:    include ':Team0417' to the "/settings.gradle" file.
-    
-6)  Open up Android Studios and clean out any old files by using the menu to "Build/Clean Project""
+### 修改转速档位
+
+```java
+SHOOTER_RPM_LONG_RANGE = 3200;      // 超远（D-Pad 右）
+SHOOTER_RPM_TRIANGLE_SIDE = 1900;   // 腰部（D-Pad 左）
+SHOOTER_RPM_TRIANGLE_BASE = 1650;   // 底部（D-Pad 下）
+SHOOTER_RPM_TRIANGLE_TOP = 2400;    // 顶点（D-Pad 上）
+```
+
+### 修改精度范围
+
+```java
+SHOOTER_RPM_ERROR_RANGE_LONG = 30;      // 超远精度 ±30 RPM
+SHOOTER_RPM_ERROR_RANGE_SIDE = 50;      // 腰部精度 ±50 RPM
+SHOOTER_RPM_ERROR_RANGE_BASE = 150;     // 底部精度 ±150 RPM
+SHOOTER_RPM_ERROR_RANGE_TOP = 35;       // 顶点精度 ±35 RPM
+```
+
+### 修改 IMU 自动转向参数
+
+```java
+AUTO_TURN_TARGET_RIGHT = 45.0;      // 转向目标 45°
+AUTO_TURN_P_GAIN = 0.1;             // PID 比例增益
+AUTO_TURN_I_GAIN = 0.0;             // PID 积分增益
+AUTO_TURN_D_GAIN = 0.005;           // PID 微分增益
+AUTO_TURN_HEADING_THRESHOLD = 2.0;  // 角度精度 ±2°
+```
+
+## 🎮 完整按键映射
+
+| 功能 | 按键 | 说明 |
+|------|------|------|
+| **前后移动** | 左摇杆 Y轴 | 向上前进、向下后退 |
+| **左右平移** | 左摇杆 X轴 | 向左平移、向右平移 |
+| **原地旋转** | 右摇杆 X轴 | 灵敏度 80%（可调） |
+| **拾取进** | A 键 | 拾取正向 |
+| **拾取退** | B 键 | 拾取反向 + 装填反向 |
+| **停止** | X 键 | 停止所有 |
+| **超远档** | D-Pad 右 | 3200 RPM |
+| **腰部档** | D-Pad 左 | 1900 RPM |
+| **底部档** | D-Pad 下 | 1650 RPM |
+| **顶点档** | D-Pad 上 | 2400 RPM |
+| **发射/停止** | Y 键 | 转速达标时启动发射 |
+| **自动转向** | 右肩键 | 自动向右转 45° |
+
+## 🔍 版本选择
+
+- **竞赛** → 使用 `TeleOp_All_2_1.java`（单文件、快速）
+- **学习** → 使用多文件版本（清晰、易扩展）
+
+## 🚀 部署流程
+
+1. **复制代码** - 复制对应版本的 Java 文件
+2. **修改硬件** - 改硬件名称到你的配置
+3. **修改参数** - 根据需要调整转速档位和精度
+4. **编译上传** - Build → Run
+5. **IMU 校准** - 上传后让机器人平放，自动校准 IMU
+6. **测试** - 验证各功能正常
+7. **部署** - 祝竞赛顺利！
+
+## 📊 性能对比
+
+| 指标 | v1.0 | v2.0 | v2.1 |
+|------|------|------|------|
+| 发射电机 | 1 | 2 | 2 |
+| IMU | ❌ | ✅ | ✅ |
+| 转速档位 | 1 | 4 | 4 |
+| 系统控制 | 独立 | 联动 | **独立** |
+| 精度管理 | 固定 | 分散 | **统一** |
+| 按键风格 | 简洁 | 混合 | **熟悉** |
+
+## 📖 快速导航
+
+### 需要快速参考？
+→ 查看本文件的表格和代码块（3分钟）
+
+### 需要配置和调试？
+→ 打开 `综合使用指南.md`（15分钟）
+
+### 需要理解改进？
+→ 打开 `功能对比文档.md`（10分钟）
+
+### 遇到问题？
+→ 打开 `综合使用指南.md` → 常见问题部分
+
+## ✅ 部署前检查
+
+□ 硬件名称已修改  
+□ 转速档位已设置  
+□ 精度范围已调整  
+□ 代码能编译通过  
+□ IMU 已连接并校准  
+
+## 💡 使用建议
+
+### 第一次使用
+1. 先使用 v1.0 熟悉基本操作
+2. 再升级到 v2.1，测试新功能
+3. 根据实际调整参数
+
+### 常见优化
+- 低电压？增加 PIDF 中的 F 值
+- 转向不稳？增加 D 值
+- 精度不够？增加误差范围
+
+## 🎓 学习路径
+
+### 初级（1小时）
+- 阅读 README.md
+- 修改硬件名称并编译
+- 测试基本功能
+
+### 中级（3小时）
+- 阅读 功能对比文档.md
+- 阅读 综合使用指南.md
+- 调整参数并测试
+
+### 高级（5小时）
+- 研究多文件版本架构
+- 理解 IMU 和 PID 控制
+- 学习模块化设计
+
+## 📝 版本历史
+
+| 版本 | 改进 |
+|------|------|
+| v1.0 | 基础功能：底盘、拾取、装填、单发射 |
+| v2.0 | 新增：双发射、IMU、自动转向、多档位 |
+| v2.1 | 优化：独立控制、统一精度、v1.0 按键 |
+
+---
+
+📅 更新：2025-12-05 | ⭐ 版本：v2.1 | ✅ 状态：完成可用
