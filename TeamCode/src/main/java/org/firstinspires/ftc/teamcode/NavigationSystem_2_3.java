@@ -7,15 +7,12 @@ import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 /**
- * 导航系统 v2.2.0 - IMU 和自动转向控制
+ * 导航系统 v2.3.0 - IMU 和自动转向控制
  * 
- * 功能：
- * - 初始化 IMU 传感器
- * - 计算当前机器人航向
- * - 自动转向到目标角度（PID控制）
- * - 重置 IMU 偏航角
+ * 新增功能：
+ * - IMU 航向重置
  */
-public class NavigationSystem_2_2 {
+public class NavigationSystem_2_3 {
     
     private final IMU imu;
     private final String imuName;
@@ -30,17 +27,17 @@ public class NavigationSystem_2_2 {
     private long previousTime = 0;
     
     // 配置参数（从常数获取）
-    private final double HEADING_THRESHOLD = RobotConstants_2_2.AUTO_TURN_HEADING_THRESHOLD;
-    private final double TURN_POWER = RobotConstants_2_2.AUTO_TURN_POWER;
-    private final double P_GAIN = RobotConstants_2_2.AUTO_TURN_P_GAIN;
-    private final double I_GAIN = RobotConstants_2_2.AUTO_TURN_I_GAIN;
-    private final double D_GAIN = RobotConstants_2_2.AUTO_TURN_D_GAIN;
+    private final double HEADING_THRESHOLD = RobotConstants_2_3.AUTO_TURN_HEADING_THRESHOLD;
+    private final double TURN_POWER = RobotConstants_2_3.AUTO_TURN_POWER;
+    private final double P_GAIN = RobotConstants_2_3.AUTO_TURN_P_GAIN;
+    private final double I_GAIN = RobotConstants_2_3.AUTO_TURN_I_GAIN;
+    private final double D_GAIN = RobotConstants_2_3.AUTO_TURN_D_GAIN;
     
     /**
      * 构造函数
      * @param imu IMU 硬件对象
      */
-    public NavigationSystem_2_2(IMU imu, String imuName) {
+    public NavigationSystem_2_3(IMU imu, String imuName) {
         this.imu = imu;
         this.imuName = imuName;
     }
@@ -59,7 +56,7 @@ public class NavigationSystem_2_2 {
     /**
      * 重置 IMU 偏航角
      */
-    public void resetHeading() {
+    public void resetYaw() {
         imu.resetYaw();
     }
     
@@ -67,7 +64,7 @@ public class NavigationSystem_2_2 {
      * 获取当前机器人航向（偏航角）
      * @return 当前航向角度（度），范围 -180 到 180
      */
-    public double getCurrentHeading() {
+    public double getHeading() {
         YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
         return orientation.getYaw(AngleUnit.DEGREES);
     }
@@ -100,7 +97,7 @@ public class NavigationSystem_2_2 {
             return 0;
         }
         
-        double currentHeading = getCurrentHeading();
+        double currentHeading = getHeading();
         double headingError = normalizeAngle(currentHeading - targetHeading);
         
         // 检查是否到达目标角度

@@ -3,36 +3,37 @@ package org.firstinspires.ftc.teamcode;
 import com.qualcomm.robotcore.hardware.DcMotor;
 
 /**
- * 底盘驱动系统 v2.2.0 - Mecanum 轮驱动和运动控制
+ * 底盘驱动系统 v2.3.0 - Mecanum 轮驱动和运动控制
  * 
- * 功能：
- * - 前后、左右、旋转独立控制
- * - 自动转向时禁用手动转向
- * - 死区和非线性映射
- * - 功率归一化
- * - 线性/非线性模式切换
+ * 新增功能：
+ * - 无头模式 (Field-Centric) 切换
  */
-public class ChassisDriveSystem_2_2 {
+public class ChassisDriveSystem_2_3 {
     
     private final DcMotor motorChassisFL;  // 前左
     private final DcMotor motorChassisFR;  // 前右
     private final DcMotor motorChassisBL;  // 后左
     private final DcMotor motorChassisBR;  // 后右
     
+    // 依赖
+    private final NavigationSystem_2_3 navigation;
+
     // 控制参数
-    private final double DEADZONE = RobotConstants_2_2.CHASSIS_JOYSTICK_DEADZONE;
+    private final double DEADZONE = RobotConstants_2_3.CHASSIS_JOYSTICK_DEADZONE;
     
     // 驱动模式状态
-    private boolean isNonLinearMode = false; // 默认为线性模式
+    private boolean isNonLinearMode = false;
+    private boolean isFieldCentric = false;
     
     /**
      * 构造函数
      */
-    public ChassisDriveSystem_2_2(DcMotor fl, DcMotor fr, DcMotor bl, DcMotor br) {
+    public ChassisDriveSystem_2_3(DcMotor fl, DcMotor fr, DcMotor bl, DcMotor br, NavigationSystem_2_3 nav) {
         this.motorChassisFL = fl;
         this.motorChassisFR = fr;
         this.motorChassisBL = bl;
         this.motorChassisBR = br;
+        this.navigation = nav;
     }
     
     /**
@@ -58,48 +59,58 @@ public class ChassisDriveSystem_2_2 {
     public void toggleDriveMode() {
         isNonLinearMode = !isNonLinearMode;
     }
+
+    /**
+     * 切换驱动模式（有头 <-> 无头）
+     */
+    public void toggleCentricMode() {
+        isFieldCentric = !isFieldCentric;
+    }
     
     /**
      * 获取当前驱动模式名称
      */
     public String getDriveModeName() {
-        return isNonLinearMode ? "非线性 (Squared)" : "线性 (Linear)";
+        String centric = isFieldCentric ? "无头 (Field)" : "有头 (Robot)";
+        String linear = isNonLinearMode ? "非线性" : "线性";
+        return centric + " | " + linear;
     }
     
     /**
      * 更新底盘运动
-     * 
-     * @param drive 前后运动（-1 到 1，正向前进）
-     * @param strafe 左右运动（-1 到 1，正向右移）
-     * @param turn 旋转运动（-1 到 1，正向逆时针）
-     * @param isAutoTurning 是否正在自动转向（如果是，忽略手动 turn 输入）
-     * @param autoTurnPower 自动转向功率（仅在 isAutoTurning 为 true 时使用）
      */
     public void update(double drive, double strafe, double turn, 
                       boolean isAutoTurning, double autoTurnPower) {
         
-        // 应用死区
+        // 死区处理
         drive = applyDeadzone(drive);
         strafe = applyDeadzone(strafe);
         
-        // 如果正在自动转向，使用自动转向功率替代手动转向
+        // 转向输入处理
         if (isAutoTurning) {
             turn = autoTurnPower;
         } else {
             turn = applyDeadzone(turn);
-            
-            // 非线性模式处理（平方映射）
             if (isNonLinearMode) {
                 drive = Math.copySign(drive * drive, drive);
                 strafe = Math.copySign(strafe * strafe, strafe);
                 turn = Math.copySign(turn * turn, turn);
             }
         }
+
+        // 无头模式坐标转换
+        if (isFieldCentric) {
+            double botHeading = Math.toRadians(navigation.getHeading());
+            double rotX = strafe * Math.cos(-botHeading) - drive * Math.sin(-botHeading);
+            double rotY = strafe * Math.sin(-botHeading) + drive * Math.cos(-botHeading);
+            strafe = rotX;
+            drive = rotY;
+        }
         
-        // 计算各轮功率（Mecanum 轮运动学）
+        // 麦克纳姆轮解算
         double flPower = drive + strafe + turn;
         double frPower = drive - strafe - turn;
-        double blPower = drive + strafe - turn;
+        double blPower = drive - strafe + turn;
         double brPower = drive + strafe - turn;
         
         // 功率归一化
@@ -107,9 +118,7 @@ public class ChassisDriveSystem_2_2 {
     }
     
     /**
-     * 应用死区（摇杆小于此值时输出 0）
-     * @param input 输入值（-1 到 1）
-     * @return 应用死区后的值
+     * 应用死区
      */
     private double applyDeadzone(double input) {
         if (Math.abs(input) < DEADZONE) {
@@ -120,8 +129,6 @@ public class ChassisDriveSystem_2_2 {
     
     /**
      * 归一化功率并应用到电机
-     * 
-     * 如果任何轮的功率超过 ±1.0，则所有轮都按相同比例缩放
      */
     private void normalizeAndApplyPower(double fl, double fr, double bl, double br) {
         double maxPower = Math.max(
