@@ -55,16 +55,16 @@ public class TeleOp_All_3_0_Blue extends LinearOpMode {
         final double SHOOTER_D = 100;       // D (Derivative) 系数
 
         // 转速预设 (RPM) - 针对不同的发射距离或角度预设
-        final int RPM_LONG = 1950;          // 长距离/高转速
-        final int RPM_SIDE = 1400;          // 侧边/中距离
-        final int RPM_BASE = 1200;          // 近距离/基础
-        final int RPM_TOP = 1625;           // 顶部/中高转速
+        final int RPM_LONG = 1675;          // 长距离/高转速
+        final int RPM_SIDE = 1275;          // 侧边/中距离
+        final int RPM_BASE = 1100;          // 近距离/基础
+        final int RPM_TOP = 1450;           // 顶部/中高转速
         final int RPM_TOLERANCE = 50;       // 达标判断的容忍度 (实际 RPM 偏离目标 RPM ±50 视为达标)
         final int RPM_REVERSE = 500;        // 反转目标转速 500 RPM (用于清理卡住的物品)
 
         // 电机功率 (固定功率，非速度控制)
-        final double POWER_INTAKE = 0.9;
-        final double POWER_LOAD = 0.75;
+        final double POWER_INTAKE = 0.95;
+        final double POWER_LOAD = 0.95;
 
         // 自动转向参数 (针对场上的固定目标角度，如塔或目标区域)
         final double TURN_POWER = 0.8;                     // 自动转向的最大输出功率
@@ -237,6 +237,7 @@ public class TeleOp_All_3_0_Blue extends LinearOpMode {
 
         // 获取 S1 电机转速 (RPM)
         // RPM = (Velocity / Ticks/Rev) * 60
+        // s1 电机的编码器是负数，需要转成整数
         double getShooter1RPM() { return (s1.getVelocity() / constants.SHOOTER_TICKS) * 60.0; }
         // 获取 S2 电机转速 (RPM)
         double getShooter2RPM() { return (s2.getVelocity() / constants.SHOOTER_TICKS) * 60.0; }
