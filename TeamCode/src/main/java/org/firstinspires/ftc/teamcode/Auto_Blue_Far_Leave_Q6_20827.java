@@ -6,10 +6,11 @@ import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.PIDFCoefficients;
 import com.qualcomm.robotcore.util.ElapsedTime;
 import com.qualcomm.robotcore.util.Range;
+
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 
-@Autonomous(name = "Auto_Blue_Far_Leave_3_0", group = "Autonomous")
-public class Auto_Blue_Far_Leave_3_0 extends LinearOpMode {
+@Autonomous(name = "Auto_Blue_Far_Leave_Q6_20827", group = "Autonomous")
+public class Auto_Blue_Far_Leave_Q6_20827 extends LinearOpMode {
     RobotHardware robot = new RobotHardware();
 
     // 自动程序专用参数
@@ -43,16 +44,16 @@ public class Auto_Blue_Far_Leave_3_0 extends LinearOpMode {
         moveStraightVelocity(100, 0, 0.5, 0.22, 2.0);
 
         // 旋转 18 度瞄准
-        rotateVelocity(22, 0.5, 2.5);
+        rotateVelocity(14, 0.5, 2.5);
 
         // 发射 (1675 RPM, 持续 3 秒)
-        shootVelocity(1675, 3.0);
+        shootVelocity(1625, 3.0);
 
         rotateVelocity(0, 0.5, 2.0);
 
-        sleep(17000);
+        sleep(20000);
 
-        moveStraightVelocity(200, 0, 0.7, 0.22, 4.0);
+        moveStraightVelocity(400, 0, 0.7, 0.22, 4.0);
 
         sleep(100);
     }

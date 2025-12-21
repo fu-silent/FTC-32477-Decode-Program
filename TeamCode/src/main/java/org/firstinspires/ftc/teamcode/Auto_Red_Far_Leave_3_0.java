@@ -43,15 +43,15 @@ public class Auto_Red_Far_Leave_3_0 extends LinearOpMode {
         moveStraightVelocity(100, 0, 0.5, 0.22, 2.0);
 
         // 旋转 18 度瞄准
-        rotateVelocity(-18, 0.3, 2.5);
+        rotateVelocity(-22, 0.5, 2.5);
 
         // 发射 (1675 RPM, 持续 3 秒)
         shootVelocity(1675, 3.0);
 
-        sleep(15000);
+        rotateVelocity(0, 0.5, 2.0);
 
-        // 归位并离开
-        rotateVelocity(0, 0.3, 2.0);
+        sleep(17000);
+
         moveStraightVelocity(200, 0, 0.7, 0.22, 4.0);
 
         sleep(100);
@@ -77,6 +77,99 @@ public class Auto_Red_Far_Leave_3_0 extends LinearOpMode {
                     drive - strafeComp - turn, drive + strafeComp + turn);
         }
         setVelocities(0,0,0,0);
+    }
+
+    public void strafePID(double mm, double targetAngle, double speed, double timeout) {
+        // 麦轮平移由于辊子滑动损耗，通常物理位移会偏小，此处乘以 1.15 补偿系数
+        int targetTicks = (int)(mm * robot.TICKS_PER_MM * 1.15);
+        resetChassisEncoders();
+        ElapsedTime timer = new ElapsedTime();
+
+        while (opModeIsActive() && timer.seconds() < timeout) {
+            // 平移位移计算公式：(LF - RF - LB + RB) / 4
+            int currentPos = (int)((robot.lf.getCurrentPosition() - robot.rf.getCurrentPosition()
+                    - robot.lb.getCurrentPosition() + robot.rb.getCurrentPosition()) / 4.0);
+
+            double error = targetTicks - currentPos;
+
+            // 容差判断：距离目标小于 20 ticks 则认为到达
+            if (Math.abs(error) < 20) break;
+
+            // 计算平移推力 (PID 比例控制)
+            double strafe = Range.clip(error * KP_DRIVE, -speed, speed);
+
+            // 实时航向修正：确保平移过程中机器人不发生旋转
+            double turn = getHeadingError(targetAngle) * KP_CORRECTION;
+
+            // 麦轮平移速度分配方案：
+            // LF = +strafe, RF = -strafe, LB = -strafe, RB = +strafe
+            setVelocities(strafe - turn, -strafe + turn,
+                    -strafe - turn, strafe + turn);
+        }
+        // 完成后停止所有电机
+        setVelocities(0,0,0,0);
+    }
+
+    /**
+     * 在前进的同时控制子系统
+     * @param mm 前进距离
+     * @param targetAngle 锁定航向
+     * @param speed 前进速度
+     * @param intakeDelay intake 启动延迟（秒）
+     * @param intakeDur   intake 持续时间（秒）
+     * @param loadDelay   load 启动延迟（秒）
+     * @param loadDur     load 持续时间（秒）
+     */
+    public void moveStraightWithSubsystems(double mm, double targetAngle, double speed,
+                                           double intakeDelay, double intakeDur,
+                                           double loadDelay, double loadDur, double timeout) {
+        int targetTicks = (int)(mm * robot.TICKS_PER_MM);
+        resetChassisEncoders();
+        ElapsedTime timer = new ElapsedTime(); // 动作开始的总计时器
+
+        while (opModeIsActive() && timer.seconds() < timeout) {
+            // --- 1. 底盘移动逻辑 ---
+            int currentPos = (int)((Math.abs(robot.lf.getCurrentPosition()) + Math.abs(robot.rf.getCurrentPosition())) / 2.0);
+            double error = targetTicks - currentPos;
+
+            // 基础前进功率
+            double drive = Range.clip(error * KP_DRIVE, -speed, speed);
+            // 航向修正
+            double turn = getHeadingError(targetAngle) * KP_CORRECTION;
+
+            // 如果距离目标足够近，停止移动，但循环可能继续（为了完成子系统动作）
+            if (Math.abs(error) < 15) drive = 0;
+
+            // --- 2. 子系统时间轴控制逻辑 ---
+            double currentTime = timer.seconds();
+
+            // 控制 Intake
+            if (currentTime >= intakeDelay && currentTime < (intakeDelay + intakeDur)) {
+                robot.intake.setPower(0.9);
+            } else {
+                robot.intake.setPower(0);
+            }
+
+            // 控制 Load
+            if (currentTime >= loadDelay && currentTime < (loadDelay + loadDur)) {
+                robot.load.setPower(0.8);
+            } else {
+                robot.load.setPower(0);
+            }
+
+            // --- 3. 执行底盘转速输出 ---
+            // 注意：这里我们假设不再需要额外的横向补偿 strafeComp，如有需要可自行添加
+            setVelocities(drive - turn, drive + turn, drive - turn, drive + turn);
+
+            // 如果底盘到达且子系统所有动作都结束，提前退出循环
+            if (Math.abs(error) < 15 && currentTime > (intakeDelay + intakeDur) && currentTime > (loadDelay + loadDur)) {
+                break;
+            }
+        }
+        // 彻底停止
+        setVelocities(0,0,0,0);
+        robot.intake.setPower(0);
+        robot.load.setPower(0);
     }
 
     public void rotateVelocity(double targetAngle, double speed, double timeout) {

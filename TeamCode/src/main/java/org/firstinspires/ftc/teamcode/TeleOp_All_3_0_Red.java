@@ -68,8 +68,8 @@ public class TeleOp_All_3_0_Red extends LinearOpMode {
 
         // 自动转向参数 (针对场上的固定目标角度，如塔或目标区域)
         final double TURN_POWER = 0.8;                     // 自动转向的最大输出功率
-        final double TURN_TARGET_TRIANGLE_TOP = 45.0;      // D1 A 键: 三角顶部瞄准 (目标场向角度)
-        final double TURN_TARGET_FAR = 61.0;               // D1 B 键: 超远瞄准 (目标 61度场向角度)
+        final double TURN_TARGET_TRIANGLE_TOP = 44.0;      // D1 A 键: 三角顶部瞄准 (目标场向角度)
+        final double TURN_TARGET_FAR = 62.5;               // D1 B 键: 超远瞄准 (目标 61度场向角度)
 
         // 交互参数
         final int RUMBLE_MS = 200;                  // 手柄震动时长 (毫秒)
